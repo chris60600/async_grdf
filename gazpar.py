@@ -1,9 +1,11 @@
-""""""
+""" Reading Gazpar data from GRDF site API """
 
 from aiohttp import ClientSession
 
+
 from whoami import WhoAmI
 from pce import Pce
+from measure import Measure
 from api import GrdfApi
 
 class Gazpar:
@@ -17,6 +19,7 @@ class Gazpar:
         self._username = username
         self._password = password
         self._pce_list = []
+        self._daily_measures = []
         self.api = GrdfApi(username=username, password=password, session=session)
 
     async def login(self):
@@ -34,7 +37,21 @@ class Gazpar:
         if (json_data['status'] == 'success'):
             pce_list = json_data['data']
             for item in pce_list:
-                myPce = Pce(item)
-                self._pce_list.append(myPce)
-
+                pce = Pce(item)
+                self._pce_list.append(pce)
             return self._pce_list
+
+    async def async_get_conso(self, pce_id, start_date, end_date) -> dict:
+        """Get pce data"""
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        end_date_str = end_date.strftime("%Y-%m-%d")
+        route = f"e-conso/pce/consommation/informatives?dateDebut={start_date_str}&dateFin={end_date_str}&pceList%5B%5D={pce_id}"
+        json_data = await self.api.async_request(route)
+        if (json_data['status'] == 'success'):
+            measures = json_data['data'][pce_id]['releves']
+            for item in measures:
+                measure = Measure(pce_id,item)
+                self._daily_measures.append(measure)
+            return self._daily_measures
+
+

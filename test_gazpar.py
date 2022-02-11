@@ -1,3 +1,5 @@
+from calendar import month
+from datetime import datetime, timedelta
 from re import A
 from app.app.gazpar import Grdf
 from api import GrdfApi
@@ -26,7 +28,13 @@ async def main() -> None:
 
         pce = await gazpar.async_get_pce()
         _LOGGER.info("PCE: %s",pce[0].json)
-        #
+
+        end_date = datetime.today()
+        start_date = end_date - timedelta(days=30)
+        measures = await gazpar.async_get_conso(pce[0].pce, start_date, end_date)
+        _LOGGER.info("Dernier index : %d", measures[-1].end_index)
+        for measure in measures:
+            _LOGGER.info("%s : %d (%d)", measure.gas_date, measure.volume, measure.end_index)
         #data = await api.async_request(endpoint='e-conso/pce')
         #if data["status"] == 'success' :
         #    pce = data['data'][0]['idObject']

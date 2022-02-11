@@ -1,22 +1,13 @@
 """ GRDF Gazpar API """
 from __future__ import annotations
-from dataclasses import dataclass
-
-import datetime
-from difflib import restore
 
 import json
 from json.decoder import JSONDecodeError
 
-from math import fabs
-from operator import rshift
-
 from aiohttp import ClientSession, ClientTimeout, ClientResponse, ServerDisconnectedError
 import aiohttp
 
-import requests
 from functools import wraps
-import time
 
 from exceptions import (
     GrdfApiDecodeError,
@@ -110,14 +101,15 @@ class GrdfApi:
             return data
         
  
-        # Call whoami, this seems to complete _LOGGER. First time it fails then it is working. Don't call ugly things anymore
+        # Call whoami, this seems to complete login. 
+        # First time it fails then it is working.
         try:
             async with session.get(url='https://monespace.grdf.fr/api/e-connexion/users/whoami'
             ) as resp:
                 response_json = await resp.json(content_type=None)
         except json.JSONDecodeError:
             response_text = await resp.text()
-            data = {"status": "warning", "data": response_json}
+            data = {"status": "warning", "data": {"message": "Response is not Json (decode Error)"}}
             return data
         except Exception as e:
             data = {"status": "fail", "data": {"message": str(e)}}
@@ -150,46 +142,3 @@ class GrdfApi:
         except JSONDecodeError as ex:
             data = {"status": "Error", "data": {"message": "Error decoding json data"}}
             return data
-#
-#---------------------------------------------------------------------------------------
-#   Obsolete
-#---------------------------------------------------------------------------------------
-
-    async def get_whoami(self):
-
-        session = self._session
-
-        try:
-            async with session.get(url='https://monespace.grdf.fr/api/e-connexion/users/whoami'
-            ) as resp:
-                response_json = await resp.json(content_type=None)
-                data = {"status": "success", "data": response_json}
-        except json.JSONDecodeError:
-            data = {"status": "Error", "data": {"message": "Error decoding json data","method": "getWhoiam"}}
-            self.isConnected = False
-        except Exception as e:
-            data = {"status": "fail", "data": {"message": str(e)}}
-            self.isConnected = False
-        finally:
-            return data
-
-    async def get_pce_list(self):
-
-        session = self._session
-       
-        # Get PCEs from website
-        try:
-            async with session.get(url='https://monespace.grdf.fr/api/e-conso/pce'
-            ) as resp:
-                response_json = await resp.json(content_type=None)
-                data = {"status": "success", "data": response_json}
-        except json.JSONDecodeError:
-            data = {"status": "Error", "data": {"message": "Error decoding json data","method": "get_pce_list"}}
-            self.isConnected = False
-        except Exception as e:
-            data = {"status": "fail", "data": {"message": str(e)}}
-            self.isConnected = False
-        finally:
-            return data
-
-

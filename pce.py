@@ -1,3 +1,5 @@
+from date_convert import date_from_grdf
+
 class Pce:
     """ PCE Class """
     def __init__(self, item: dict) -> None:
@@ -16,12 +18,12 @@ class Pce:
         return self._data['frequenceReleve']
 
     @property
-    def collect_date(self) -> str:
-        return self._data['dateDerniereVerification']
+    def collect_date(self):
+        return date_from_grdf(self._data['dateDerniereVerification'])
 
     @property
-    def activation_date(self) -> str:
-        return self._data['dateActivation']
+    def activation_date(self):
+        return date_from_grdf(self._data['dateActivation'])
 
     @property
     def state(self) -> str:
